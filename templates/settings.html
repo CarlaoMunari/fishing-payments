@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Configurações do Sistema</h2>
+    <form action="{{ url_for('settings') }}" method="POST" class="modern-form">
+        <div class="form-group">
+            <label for="circuit_name">Nome do Circuito</label>
+            <input type="text" id="circuit_name" name="circuit_name" value="{{ settings.circuit_name }}" required placeholder="Ex: Circuito Tucuna Free">
+        </div>
+        
+        <div class="form-group">
+            <label for="stage_name">Etapa Atual</label>
+            <input type="text" id="stage_name" name="stage_name" value="{{ settings.stage_name }}" required placeholder="Ex: 1ª Etapa - Represa">
+        </div>
+        
+        <div class="form-group">
+            <label for="year">Ano do Evento</label>
+            <input type="text" id="year" name="year" value="{{ settings.year }}" required placeholder="Ex: 2026">
+        </div>
+        
+        <button type="submit" class="btn btn-large btn-primary w-100">Salvar Configurações</button>
+    </form>
+</div>
+{% endblock %}

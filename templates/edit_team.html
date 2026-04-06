@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Editar Equipe #{{ team.id }}</h2>
+    <form action="{{ url_for('edit_team', team_id=team.id) }}" method="POST" class="modern-form">
+        <div class="form-group">
+            <label for="name">Nome da Equipe</label>
+            <input type="text" id="name" name="name" value="{{ team.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="contact">Contato (WhatsApp / Telefone) - Opcional</label>
+            <input type="text" id="contact" name="contact" value="{{ team.contact or '' }}">
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="has_ruler" name="has_ruler" value="1" {% if team.has_ruler %}checked{% endif %}>
+            <label for="has_ruler">A equipe optou por comprar a <strong>Régua do Circuito</strong>?</label>
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="is_courtesy" name="is_courtesy" value="1" {% if team.is_courtesy %}checked{% endif %}>
+            <label for="is_courtesy">Inscrição de <strong>Cortesia</strong> (Isenta de pagamento)</label>
+        </div>
+        
+        <div class="form-group">
+            <label for="payment_amount">Valor do Pagamento / Comprovante (R$)</label>
+            <input type="number" id="payment_amount" name="payment_amount" step="0.01" min="0" value="{{ team.payment_amount or '0.00' }}" placeholder="Ex: 250.00" class="file-input">
+        </div>
+        
+        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Participantes da Equipe</h3>
+        <div class="form-group">
+            <label for="participant1">Participante 1</label>
+            <input type="text" id="participant1" name="participant1" value="{{ team.participant1 }}" required>
+        </div>
+        <div class="form-group">
+            <label for="participant2">Participante 2</label>
+            <input type="text" id="participant2" name="participant2" value="{{ team.participant2 }}" required>
+        </div>
+        <div class="form-group">
+            <label for="participant3">Participante 3</label>
+            <input type="text" id="participant3" name="participant3" value="{{ team.participant3 }}" required>
+        </div>
+        <div class="form-group">
+            <label for="participant4">Participante 4</label>
+            <input type="text" id="participant4" name="participant4" value="{{ team.participant4 }}" required>
+        </div>
+        
+        <button type="submit" class="btn btn-large btn-primary w-100">Atualizar Equipe</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-large btn-outline w-100" style="margin-top: 10px; display: block; text-align: center; text-decoration: none;">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total de Equipes</h3>
+        <p class="stat-value">{{ total_teams }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Réguas Compradas</h3>
+        <p class="stat-value">{{ total_rulers }}</p>
+    </div>
+    <div class="stat-card">
+        <h3>Pagamentos Aprovados</h3>
+        <p class="stat-value">{{ approved_payments }}</p>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+        <h3 style="color: rgba(255,255,255,0.9);">Total Arrecadado</h3>
+        <p class="stat-value">R$ {{ "%.2f"|format(total_collected) }}</p>
+    </div>
+</div>
+
+<div class="teams-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 0;">Equipes Cadastradas</h2>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; background-color: #10b981; border-color: #10b981;">+ Nova Equipe</a>
+            <form method="GET" action="{{ url_for('dashboard') }}" style="display: flex; gap: 10px;">
+                <input type="text" name="q" placeholder="Pesquisar por nome..." value="{{ search_query }}" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">Buscar</button>
+                {% if search_query %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="padding: 0.5rem 1rem; display: flex; align-items: center;">Limpar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    <div class="table-container">
+        <table class="teams-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome da Equipe</th>
+                    <th>Contato</th>
+                    <th>Participantes</th>
+                    <th>Régua</th>
+                    <th>Comprovante</th>
+                    <th>Valor Pago</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in teams %}
+                <tr>
+                    <td>#{{ team.id }}</td>
+                    <td><strong>{{ team.name }}</strong></td>
+                    <td>{{ team.contact }}</td>
+                    <td style="font-size: 0.85rem; line-height: 1.4;">
+                        1. {{ team.participant1 or '' }}<br>
+                        2. {{ team.participant2 or '' }}<br>
+                        3. {{ team.participant3 or '' }}<br>
+                        4. {{ team.participant4 or '' }}
+                    </td>
+                    <td>
+                        {% if team.has_ruler %}
+                            <span class="badge badge-success">Sim</span>
+                        {% else %}
+                            <span class="badge badge-error">Não</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if team.is_courtesy %}
+                            <span class="badge" style="background-color: var(--primary); color: white;">Cortesia</span>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline" onclick="openModal('{{ url_for('static', filename='uploads/' + team.receipt_filename) }}', 'Comprovante - {{ team.name }}')">
+                                Ver Comprovante
+                            </button>
+                        {% endif %}
+                    </td>
+                    <td>R$ {{ "%.2f"|format(team.payment_amount or 0.0) }}</td>
+                    <td>
+                        {% if team.payment_status == 'Aprovado' %}
+                            <span class="badge badge-success">Aprovado</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pendente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{{ url_for('update_status', team_id=team.id) }}" method="POST" class="action-form">
+                            <select name="status" class="status-select">
+                                <option value="Pendente" {% if team.payment_status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                                <option value="Aprovado" {% if team.payment_status == 'Aprovado' %}selected{% endif %}>Aprovado</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+                        </form>
+                        <a href="{{ url_for('edit_team', team_id=team.id) }}" class="btn btn-sm btn-outline" style="margin-top: 5px; display: block; text-align: center;">Editar</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Nenhuma equipe cadastrada ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

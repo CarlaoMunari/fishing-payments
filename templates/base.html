@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneio de Pesca - Pagamentos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🐟 PescaPro</h2>
+                {% if app_settings %}
+                <p style="font-size: 0.8rem; margin-top: 5px; color: #aaa;">
+                    {{ app_settings.circuit_name }} <br> 
+                    {{ app_settings.stage_name }} - {{ app_settings.year }}
+                </p>
+                {% endif %}
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('results') }}" class="nav-link">Relatórios</a>
+                <a href="{{ url_for('settings') }}" class="nav-link">Configurações</a>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Organizador de Pagamentos</h1>
+            </header>
+            
+            <div class="content-area">
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <div class="flash-messages">
+                    {% for message in messages %}
+                      <div class="alert alert-info">{{ message }}</div>
+                    {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal for Preview -->
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImg" style="display: none;">
+        <iframe class="modal-content" id="modalPdf" style="display: none; width: 80%; height: 80vh; background: white;" frameborder="0"></iframe>
+        <div id="caption"></div>
+    </div>
+    
+    <script>
+        function openModal(fileSrc, captionText) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImg");
+            var modalPdf = document.getElementById("modalPdf");
+            var caption = document.getElementById("caption");
+            
+            modal.style.display = "flex";
+            caption.innerHTML = captionText;
+            
+            if (fileSrc.toLowerCase().endsWith('.pdf')) {
+                modalImg.style.display = "none";
+                modalPdf.style.display = "block";
+                modalPdf.src = fileSrc;
+            } else {
+                modalPdf.style.display = "none";
+                modalImg.style.display = "block";
+                modalImg.src = fileSrc;
+            }
+        }
+
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+            document.getElementById("modalPdf").src = "";
+            document.getElementById("modalImg").src = "";
+        }
+    </script>
+</body>
+</html>

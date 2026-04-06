@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+@page { size: landscape; }
+@media print {
+    body { background-color: #fff; color: #000; }
+    .filter-section, header, nav, footer, .navbar, .sidebar { display: none !important; }
+    .no-print { display: none !important; }
+    .teams-section { box-shadow: none; padding: 0; margin: 0; }
+    .badge { border: 1px solid #ccc; background: transparent !important; color: #000 !important; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc !important; padding: 8px !important; }
+    .print-only-title { display: block !important; }
+}
+</style>
+<div class="results-container">
+    <div class="filter-section" style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+        <h2 style="margin-bottom: 15px; color: #1e293b; font-size: 1.25rem;">Filtrar Relatórios</h2>
+        <form method="GET" action="{{ url_for('results') }}" class="modern-form" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            
+            <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                <label for="circuit_name">Circuito</label>
+                <select name="circuit_name" id="circuit_name" class="status-select" style="width: 100%; border: 1px solid #cbd5e1; padding: 0.75rem; border-radius: 8px;">
+                    <option value="">Todos os Circuitos</option>
+                    {% for circuit in circuits %}
+                    <option value="{{ circuit }}" {% if selected_circuit == circuit %}selected{% endif %}>{{ circuit }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                <label for="stage_name">Etapa</label>
+                <select name="stage_name" id="stage_name" class="status-select" style="width: 100%; border: 1px solid #cbd5e1; padding: 0.75rem; border-radius: 8px;">
+                    <option value="">Todas as Etapas</option>
+                    {% for stage in stages %}
+                    <option value="{{ stage }}" {% if selected_stage == stage %}selected{% endif %}>{{ stage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                <label for="year">Ano</label>
+                <select name="year" id="year" class="status-select" style="width: 100%; border: 1px solid #cbd5e1; padding: 0.75rem; border-radius: 8px;">
+                    <option value="">Todos os Anos</option>
+                    {% for year in years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="flex: 0 0 auto;">
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; height: 100%;">Filtrar</button>
+            </div>
+            <div style="flex: 0 0 auto;">
+                <a href="{{ url_for('results') }}" class="btn btn-outline" style="padding: 0.75rem 1.5rem; height: 100%; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">Limpar</a>
+            </div>
+            <div style="flex: 0 0 auto;">
+                <button type="button" onclick="window.print()" class="btn btn-outline" style="padding: 0.75rem 1.5rem; height: 100%; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; border-color: #10b981; color: #10b981; font-weight: bold;">
+                    🖨️ Imprimir PDF
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="teams-section">
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Equipes Aprovadas
+                <div class="print-only-title" style="display: none; font-size: 1rem; color: #64748b; font-weight: normal; margin-top: 5px;">
+                    Filtro: 
+                    {% if selected_circuit %}{{ selected_circuit }}{% else %}Todos os Circuitos{% endif %} | 
+                    {% if selected_stage %}{{ selected_stage }}{% else %}Todas as Etapas{% endif %} | 
+                    {% if selected_year %}{{ selected_year }}{% else %}Todos os Anos{% endif %}
+                </div>
+            </span>
+            <span class="badge badge-success" style="font-size: 0.9rem;">{{ teams|length }} equipes</span>
+        </h2>
+        
+        <div class="table-container">
+            <table class="teams-table">
+                <thead>
+                    <tr>
+                        <th>Nome da Equipe</th>
+                        <th>Contato</th>
+                        <th>Participantes</th>
+                        <th>Régua</th>
+                        <th class="no-print">Comprovante</th>
+                        <th class="no-print">Valor Pago</th>
+                        <th>Circuito/Etapa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in teams %}
+                    <tr>
+                        <td><strong>#{{ team.id }} - {{ team.name }}</strong></td>
+                        <td>{{ team.contact }}</td>
+                        <td style="font-size: 0.85rem; line-height: 1.4;">
+                            1. {{ team.participant1 or '' }}<br>
+                            2. {{ team.participant2 or '' }}<br>
+                            3. {{ team.participant3 or '' }}<br>
+                            4. {{ team.participant4 or '' }}
+                        </td>
+                        <td>
+                            {% if team.has_ruler %}
+                                <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2);">Sim</span>
+                            {% else %}
+                                <span class="badge badge-error" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);">Não</span>
+                            {% endif %}
+                        </td>
+                        <td class="no-print">
+                            {% if team.is_courtesy %}
+                                <span class="badge" style="background-color: var(--primary); color: white;">Cortesia</span>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline" onclick="openModal('{{ url_for('static', filename='uploads/' + team.receipt_filename) }}', 'Comprovante - {{ team.name }}')">
+                                    Ver Comprovante
+                                </button>
+                            {% endif %}
+                        </td>
+                        <td class="no-print">R$ {{ "%.2f"|format(team.payment_amount or 0.0) }}</td>
+                        <td>
+                            <div style="font-size: 0.85rem; color: #64748b;">
+                                <strong>{{ team.circuit_name or 'N/A' }}</strong><br>
+                                {{ team.stage_name or 'N/A' }} ({{ team.year or 'N/A' }})
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center" style="padding: 2rem; color: #64748b;">Nenhuma equipe aprovada encontrada para este filtro.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
