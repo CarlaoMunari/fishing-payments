@@ -8,7 +8,7 @@ __pycache__/
 *.pyc
 
 # Database
-database.db
+# database.db
 
 # Uploads
 static/uploads/*
