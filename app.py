@@ -200,8 +200,11 @@ def results():
     teams = conn.execute(query, params).fetchall()
     conn.close()
     
+    total_collected = sum([t['payment_amount'] or 0.0 for t in teams if not t['is_courtesy']])
+    
     return render_template('results.html', 
                            teams=teams, 
+                           total_collected=total_collected,
                            circuits=[c['circuit_name'] for c in circuits],
                            stages=[s['stage_name'] for s in stages],
                            years=[y['year'] for y in years],

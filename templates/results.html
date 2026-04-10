@@ -1,16 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 <style>
-@page { size: landscape; }
+@page { size: landscape; margin: 1.5cm; }
 @media print {
-    body { background-color: #fff; color: #000; }
+    body { background-color: #fff; color: #1e293b; font-family: 'Inter', system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .filter-section, header, nav, footer, .navbar, .sidebar { display: none !important; }
     .no-print { display: none !important; }
-    .teams-section { box-shadow: none; padding: 0; margin: 0; }
-    .badge { border: 1px solid #ccc; background: transparent !important; color: #000 !important; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc !important; padding: 8px !important; }
-    .print-only-title { display: block !important; }
+    .teams-section { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: transparent !important; }
+    .badge { border: 1px solid #e2e8f0; background: transparent !important; color: #475569 !important; font-weight: bold; }
+    
+    /* Modern Print Table */
+    table.teams-table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    th { background-color: #f8fafc !important; color: #334155 !important; border-bottom: 2px solid #cbd5e1 !important; text-align: left; padding: 12px 8px !important; font-weight: bold; }
+    td { border-bottom: 1px solid #e2e8f0 !important; padding: 12px 8px !important; color: #1e293b !important; }
+    
+    .print-only-title { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+    
+    /* Fix clipping for multiple pages in print */
+    html, body, .app-container, .main-content, .content-area, .results-container {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+        width: 100% !important;
+    }
+    
+    /* Improve accounting section in print */
+    .accounting-section { margin: 0 !important; padding: 0 !important; page-break-before: always !important; }
+    
+    /* Force stats-grid to look like dashboard in print */
+    .stats-grid { display: flex !important; flex-direction: row !important; justify-content: space-between !important; gap: 15px !important; page-break-inside: avoid !important; }
+    .stat-card { flex: 1 !important; border: 1px solid #e2e8f0 !important; padding: 20px !important; margin: 0 !important; box-shadow: none !important; border-radius: 8px !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #fff !important; }
+    .stat-card h3 { color: #64748b !important; font-size: 0.85rem !important; margin-bottom: 10px !important; text-transform: uppercase !important; font-weight: bold !important; }
+    .stat-card .stat-value { font-size: 2rem !important; font-weight: bold !important; color: #1e293b !important; }
+    .stat-card[style*="background"] { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; }
+    .stat-card[style*="background"] h3 { color: rgba(255,255,255,0.9) !important; }
+    .stat-card[style*="background"] .stat-value { color: white !important; }
 }
 </style>
 <div class="results-container">
@@ -84,14 +111,19 @@
                         <th>Participantes</th>
                         <th>Régua</th>
                         <th class="no-print">Comprovante</th>
-                        <th class="no-print">Valor Pago</th>
+                        <th>Valor Pago</th>
                         <th>Circuito/Etapa</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for team in teams %}
                     <tr>
-                        <td><strong>#{{ team.id }} - {{ team.name }}</strong></td>
+                        <td>
+                            <strong>#{{ team.id }} - {{ team.name }}</strong>
+                            {% if team.is_courtesy %}
+                                <span style="font-size: 0.85rem; color: #64748b; margin-left: 5px; font-weight: normal;">(Cortesia)</span>
+                            {% endif %}
+                        </td>
                         <td>{{ team.contact }}</td>
                         <td style="font-size: 0.85rem; line-height: 1.4;">
                             1. {{ team.participant1 or '' }}<br>
@@ -115,7 +147,7 @@
                                 </button>
                             {% endif %}
                         </td>
-                        <td class="no-print">R$ {{ "%.2f"|format(team.payment_amount or 0.0) }}</td>
+                        <td>R$ {{ "%.2f"|format(team.payment_amount or 0.0) }}</td>
                         <td>
                             <div style="font-size: 0.85rem; color: #64748b;">
                                 <strong>{{ team.circuit_name or 'N/A' }}</strong><br>
@@ -125,11 +157,53 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center" style="padding: 2rem; color: #64748b;">Nenhuma equipe aprovada encontrada para este filtro.</td>
+                        <td colspan="7" class="text-center" style="padding: 2rem; color: #64748b;">Nenhuma equipe aprovada encontrada para este filtro.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
+                <!-- Contabilidade removida da tabela e movida para a seção abaixo -->
             </table>
+        </div>
+    </div>
+
+    <!-- Seção de Contabilidade Financeira -->
+    <div class="accounting-section" style="page-break-before: always; padding-top: 2rem;">
+        <div>
+            <h2 class="print-only-title" style="display: none; color: #1e293b; font-size: 1.5rem; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 30px;">
+                Relatório Financeiro
+                <div style="font-size: 1rem; color: #64748b; font-weight: normal; margin-top: 5px;">
+                    Filtro: 
+                    {% if selected_circuit %}{{ selected_circuit }}{% else %}Todos os Circuitos{% endif %} | 
+                    {% if selected_stage %}{{ selected_stage }}{% else %}Todas as Etapas{% endif %} | 
+                    {% if selected_year %}{{ selected_year }}{% else %}Todos os Anos{% endif %}
+                </div>
+            </h2>
+
+            <div class="stats-grid">
+                {% set total_teams = teams|length %}
+                {% set total_rulers = teams | selectattr("has_ruler") | list | length %}
+                
+                <div class="stat-card">
+                    <h3>Total de Equipes</h3>
+                    <p class="stat-value">{{ total_teams }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Réguas Compradas</h3>
+                    <p class="stat-value">{{ total_rulers }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pagamentos Aprovados</h3>
+                    <p class="stat-value">{{ total_teams }}</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                    <h3 style="color: rgba(255,255,255,0.9);">Total Arrecadado</h3>
+                    <p class="stat-value">R$ {{ "%.2f"|format(total_collected) }}</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; color: #94a3b8; font-size: 0.85rem; text-align: center;">
+                <p>Relatório gerado em: <script>document.write(new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR'));</script></p>
+            </div>
         </div>
     </div>
 </div>
